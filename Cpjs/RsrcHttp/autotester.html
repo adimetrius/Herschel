@@ -1,0 +1,86 @@
+<html><head><title>CPJS automatic</title></head>
+<body>
+<P><STRONG>CPJS automatic tester</STRONG></P>
+<Commander onclick=RunTests()>Run.Again</Commander>
+<pre><p id="RESULTS"></p></pre>
+<script src="JAVASCRIPT.js"></script>
+<div id="include"></div>
+<STYLE> STANDARD, TEST, #RESULTS {display:none;} 
+    .match {display: grid; grid-template-columns: 1fr 1fr; grid-gap: 20px; }
+    .StdText {color:blue; white-space: pre-line}
+    .Result { color:red }
+    .coldiam, .expdiam { color:blue; cursor:default }
+    .details:before { content: " " }
+    .hidden .match, .hidden .coldiam, :not(.hidden) .expdiam { display:none }
+    .hidden .expdiam {display:inherit}
+    diam { display:inline-block; color:blue; cursor:default }
+    :not(.hidden) diam:before { content:"\025c7" }
+    .hidden diam:before { content:"\025c6" }
+    PASSED { display:inline; color:green }
+    PASSED:before { content:"PASSED!" }
+    FAILED { display:inline; color:red }
+    FAILED:before { content:"FAILED" }
+    Commander:before {display:inline-block;content: "!";font-size:1em;font-weight:bold;width:1em;text-align:center;border:1px solid black;border-radius:50%;background:black;vertical-align:middle;margin-right:.25em;cursor:default;color:white;}
+    Commander:active:before {border:1px solid black; color:black; background-color:white}
+</STYLE>
+
+<div id="LOGDIV" ><p>TEST LOG:</p></div>
+
+<SCRIPT>
+"use strict";
+var Log = {};
+Log.String = function (s) { LOGDIV.insertAdjacentText('beforeend', s) };
+Log.HTML = function (s) { LOGDIV.insertAdjacentHTML('beforeend', s) };
+Log.Ln = function () { LOGDIV.insertAdjacentHTML('beforeend', '<br>') };
+
+function FlipFold(who) { who.parentElement.classList.toggle('hidden') }
+
+function RunTests () { 
+	const none = -1, ok = 0, runtime = 1, evaltime = 2;
+	var M, P, i = 0, tests, t, log, res = none, len, std, module, passed = false;
+	for (i = 0, tests = document.getElementsByTagName("TEST"), len = tests.length; i < len; i++) {
+		t = tests[i];
+		M = t.attributes.M.value;
+		P = t.attributes.P.value;
+		Log.String(M + "." + P + ": ");
+		RESULTS.innerText = "";
+		try {
+		    module = document.createElement('script');
+		    module.appendChild(document.createTextNode(t.innerText + "\n//# sourceURL=" + M + ".js;"));
+		    document.head.append(module);
+		    try { window[M][P].call(); res = ok } 
+		    catch (e) { res = runtime; throw e };
+		} catch (e) { if (res === none) res = evaltime; throw e; console.log(e) };
+		if (res === ok) {
+			std = document.querySelector('standard[p="' + P + '"]');
+			if (typeof std !== 'undefined') {
+				passed = std.innerText === (RESULTS.innerHTML.replace(/<br>/g, "\n"));
+				if (passed) { Log.HTML("<PASSED></PASSED>"); }
+				else { Log.HTML("<FAILED></FAILED>"); Log.String(": result does not match standard"); }
+			    Log.HTML(`<span class="details${passed?" hidden":""}"><diam onclick=FlipFold(this)></diam><div class="match"><div class="StdText">${std.innerHTML}</div><div class="Result">${RESULTS.innerHTML}</div></div></span><br>`)
+			} else { Log.String("No standard supplied"); Log.Ln() }
+		} else { Log.HTML("<FAILED></FAILED>"); 
+    		if (res === evaltime) { Log.String(": could not evaluate"); Log.Ln() }
+            else if (res === runtime) { Log.String(": wrong result"); Log.Ln() }
+		}
+		delete window[M];
+		document.head.removeChild(module);
+	}
+}
+
+// this loads the hmtl file with tests into div id = "include"
+    var d = document.getElementById("include");
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+          if (this.status == 200) {d.innerHTML = this.responseText; RunTests() }
+          if (this.status == 404) {d.innerHTML = "Page not found.";}
+        }
+      }
+      xhttp.open("GET", "tests.html", true);
+      xhttp.send();
+
+</SCRIPT>
+
+</body>
+</html>
