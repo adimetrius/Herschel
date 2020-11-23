@@ -1,0 +1,5 @@
+#!/bin/bash
+#echo >>/tmp/startElf `pwd`
+echo >>/tmp/nativeStart $1
+chmod +x $1
+gnome-terminal --geometry=90x20+400+300 -x bash -c "$1 ; echo Exit code $?; echo Hit Enter to close terminal; read line"
