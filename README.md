@@ -1,5 +1,5 @@
 # Herschel
-https://herschel.oberon.org
+herschel.oberon.org
 
 Building a Component Pascal 64-bit compiler for BlackBox Component Builder
 
